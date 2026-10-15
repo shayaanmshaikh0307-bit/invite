@@ -24,7 +24,7 @@
 @font-face { font-family: "Cormorant Garamond"; src: url("../fonts/cormorant-garamond-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 var(--f-sans); -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; }
-button, input { font: inherit; color: inherit; }
+button, input, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 [hidden] { display: none !important; }
 .wrap { max-width: 640px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(40px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
@@ -86,6 +86,20 @@ h1 { margin: 0; font: 500 28px/1.1 var(--f-serif); }
 .msg-head b { color: var(--ink); font-weight: 600; font-size: 15px; }
 .msg p { margin: 6px 0 0; white-space: pre-wrap; }
 
+.add-toggle { width: 100%; margin: 0 0 12px; border: 1px dashed #D8C49A; background: var(--card); color: var(--gold); border-radius: 12px; min-height: 48px; font-weight: 600; cursor: pointer; }
+.add { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+.add h2 { margin: 0 0 10px; font: 500 22px/1.2 var(--f-serif); }
+.add label.f { display: block; font-size: 14px; font-weight: 500; margin: 12px 0 5px; }
+.add .help { font-size: 13px; color: var(--muted); margin: 3px 0 0; }
+.add input[type=text], .add input[type=tel], .add textarea { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 11px 12px; font-size: 16px; background: #fff; }
+.add textarea { min-height: 150px; resize: vertical; line-height: 1.4; }
+.add .seg { display: flex; gap: 8px; flex-wrap: wrap; }
+.add .seg label { flex: 1 1 140px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 15px; cursor: pointer; }
+.add .seg input:checked + span { font-weight: 600; color: var(--gold); }
+.add .check { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; font-size: 15px; }
+.add .check input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--gold); flex: none; }
+.add .row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.add .btn.go { background: var(--gold); color: #fff; flex: 1 1 160px; }
 .foot { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); }
 .notice { margin: 40px auto; max-width: 420px; text-align: center; }
 .notice h1 { margin-bottom: 10px; }
@@ -124,6 +138,31 @@ h1 { margin: 0; font: 500 28px/1.1 var(--f-serif); }
       <button type="button" role="tab" data-tab="replied" aria-selected="false">Replied<span class="n"></span></button>
     </div>
 
+    <button type="button" class="add-toggle" id="addToggle" hidden>+ Add a household</button>
+    <form class="add" id="addForm" hidden novalidate>
+      <h2>Add a household</h2>
+      <label class="f" for="addAddr">Name on the envelope</label>
+      <input type="text" id="addAddr" maxlength="150" placeholder="e.g. Mr &amp; Mrs Rahman and Family" autocomplete="off">
+      <label class="f">Whose guests</label>
+      <div class="seg" id="addSide">
+        <label><input type="radio" name="addSide" value="Bride"><span id="addBrideLbl">Bride's side</span></label>
+        <label><input type="radio" name="addSide" value="Groom"><span id="addGroomLbl">Groom's side</span></label>
+      </div>
+      <label class="f" for="addNames">Everyone invited, one name per line</label>
+      <textarea id="addNames" placeholder="Imran Rahman&#10;Nadia Rahman" autocomplete="off"></textarea>
+      <p class="help">Each person gets their own yes/no on the RSVP.</p>
+      <label class="f" for="addPhone">Mobile number (optional)</label>
+      <input type="tel" id="addPhone" maxlength="20" placeholder="07..." autocomplete="off">
+      <p class="help">With a number, you get a one-tap WhatsApp button. Without one, use Copy message.</p>
+      <label class="check"><input type="checkbox" id="addPlus"><span>They may bring a guest</span></label>
+      <label class="check"><input type="checkbox" id="addTest"><span>This is a test (it's removed before the real invitations go out)</span></label>
+      <div class="err" id="addErr" hidden></div>
+      <div class="row">
+        <button type="submit" class="btn go" id="addGo">Add household</button>
+        <button type="button" class="btn plain" id="addCancel">Cancel</button>
+      </div>
+    </form>
+
     <input class="search" id="search" type="search" placeholder="Search names" aria-label="Search names" autocomplete="off">
     <p class="hint" id="hint"></p>
     <div class="list" id="list" aria-live="polite"></div>
@@ -139,7 +178,7 @@ h1 { margin: 0; font: 500 28px/1.1 var(--f-serif); }
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="../js/config.js"></script>
-<script src="send.js"></script>
+<script src="../js/config.js?v=2"></script>
+<script src="send.js?v=2"></script>
 </body>
 </html>

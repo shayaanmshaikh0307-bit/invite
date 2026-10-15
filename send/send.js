@@ -62,6 +62,9 @@
     var names = d.sideNames || { Bride: "Bride", Groom: "Groom" };
     var otherName = names[mySide() === "Groom" ? "Bride" : "Groom"] + "'s";
     $("otherBtn").textContent = otherName;
+    $("addToggle").hidden = !(d.you && d.you.side === "Groom") || !$("addForm").hidden;
+    $("addBrideLbl").textContent = names.Bride + "'s";
+    $("addGroomLbl").textContent = names.Groom + "'s";
     $("who").textContent = d.you.name;
     document.querySelectorAll(".sidebar button").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-side") === S.side ? "true" : "false"); });
 
@@ -239,6 +242,51 @@
     if (act === "unmark") simple(code, { op: "unmarkSent" }, function () { toast("Moved back to To send"); });
     if (act === "pause") simple(code, { op: "pause", paused: b.getAttribute("data-paused") === "1" }, function (r) { toast(r.paused ? "Reminders stopped for this household" : "Reminders allowed again"); });
   });
+  /* ------------------------------------------------------------ adding a household (main sending key only) */
+  function addErr(t) { $("addErr").textContent = t || ""; $("addErr").hidden = !t; }
+  function openAdd(on) {
+    $("addForm").hidden = !on;
+    $("addToggle").hidden = on;
+    addErr("");
+    if (on) {
+      $("addForm").reset();
+      var mine = $("addForm").querySelector('input[name=addSide][value="' + mySide() + '"]');
+      if (mine) mine.checked = true;
+      $("addAddr").focus();
+    }
+  }
+  $("addToggle").addEventListener("click", function () { openAdd(true); });
+  $("addForm").addEventListener("input", function () { addErr(""); });
+  $("addCancel").addEventListener("click", function () { openAdd(false); });
+  $("addForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var addr = $("addAddr").value.replace(/\s+/g, " ").trim();
+    var sideEl = $("addForm").querySelector("input[name=addSide]:checked");
+    var names = $("addNames").value.split(/\n/).map(function (n) { return n.replace(/\s+/g, " ").trim(); }).filter(Boolean);
+    var phone = $("addPhone").value.trim();
+    if (!addr) return addErr("Add the name for the envelope.");
+    if (!sideEl) return addErr("Choose whose guests they are.");
+    if (!names.length) return addErr("Add at least one name.");
+    if (names.length > 30) return addErr("That's a lot of names for one household. Check there's one name per line.");
+    if (phone && phone.replace(/\D/g, "").length < 10) return addErr("That mobile number looks too short.");
+    var household = ($("addTest").checked ? "TEST " : "") + addr;
+    var exists = S.data.households.some(function (h) { return h.household.toLowerCase() === household.toLowerCase(); });
+    if (exists) return addErr("There's already a household with this name. To add people to it, ask Claude, or use the Sheet.");
+    var plus = $("addPlus").checked ? "Y" : "";
+    var rows = names.map(function (n) { return [addr, household, n, phone, sideEl.value, plus, ""]; });
+    var go = $("addGo");
+    go.disabled = true; go.textContent = "Adding…"; addErr("");
+    call({ op: "importRows", rows: rows }, 30000).then(function (r) {
+      go.disabled = false; go.textContent = "Add household";
+      if (!r || !r.ok) return addErr(r && r.error === "unauthorised" ? "Only the main sending page can add households." : "That didn't save. Check your connection and try again.");
+      if (r.problems && r.problems.length) return addErr("Something in that list couldn't be added (" + r.problems[0].why + "). Nothing has been sent.");
+      openAdd(false);
+      S.side = sideEl.value === mySide() ? "mine" : "other"; S.tab = "send"; S.q = addr; $("search").value = addr;
+      toast("Added. Their invitation is ready below.");
+      load(true);
+    }).catch(function () { go.disabled = false; go.textContent = "Add household"; addErr("No connection. Try again."); });
+  });
+
   $("search").addEventListener("input", function (e) { S.q = e.target.value.trim(); render(); });
   document.addEventListener("visibilitychange", function () { if (!document.hidden && S.data) load(true); });
 
