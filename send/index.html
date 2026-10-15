@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Send invitations</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#FAF7F0">
+<style>
+/* Sending page: a quiet working tool in the invitation's palette. */
+:root {
+  --bg: #FAF7F0; --card: #FFFFFF; --ink: #2F2B28; --muted: #6E665E; --line: #E7DFD2;
+  --gold: #8C6A2B; --gold-soft: #F3EBDA; --wa: #1F8F4E; --ok: #3C8A57; --warn: #A3622A; --no: #8A837C;
+  --focus: #2F6FD0;
+  --f-sans: "Jost", -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --f-serif: "Cormorant Garamond", Garamond, "Times New Roman", serif;
+  color-scheme: light;
+}
+@font-face { font-family: "Jost"; src: url("../fonts/jost-latin-400-normal.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Jost"; src: url("../fonts/jost-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Jost"; src: url("../fonts/jost-latin-600-normal.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Cormorant Garamond"; src: url("../fonts/cormorant-garamond-latin-500-normal.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 var(--f-sans); -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%; }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.wrap { max-width: 640px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(40px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+
+header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+h1 { margin: 0; font: 500 28px/1.1 var(--f-serif); }
+.who { color: var(--muted); font-size: 14px; }
+.sidebar { display: inline-flex; margin-top: 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--card); padding: 3px; }
+.sidebar button { border: 0; background: none; padding: 7px 14px; border-radius: 999px; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--muted); }
+.sidebar button[aria-pressed="true"] { background: var(--gold); color: #fff; }
+
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0 6px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 10px 8px; }
+.stat b { display: block; font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat span { font-size: 12px; color: var(--muted); }
+.progress { font-size: 13px; color: var(--muted); margin: 4px 2px 0; }
+.deadline { font-size: 13px; color: var(--muted); margin: 2px 2px 14px; }
+
+.tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; margin: 0 -2px 12px; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { flex: none; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 12px; font-size: 14px; font-weight: 500; cursor: pointer; white-space: nowrap; }
+.tabs button[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.tabs .n { display: inline-block; min-width: 1.5em; margin-left: 4px; padding: 0 5px; border-radius: 999px; background: var(--gold-soft); color: var(--gold); font-size: 12px; text-align: center; font-variant-numeric: tabular-nums; }
+.tabs button[aria-selected="true"] .n { background: rgba(255,255,255,.18); color: #fff; }
+
+.search { width: 100%; border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 11px 12px; font-size: 16px; margin-bottom: 12px; }
+.hint { font-size: 14px; color: var(--muted); margin: 0 2px 12px; }
+
+.list { display: flex; flex-direction: column; gap: 10px; }
+.hh { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 14px 12px; }
+.hh-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.hh-name { font-weight: 600; font-size: 17px; line-height: 1.25; }
+.hh-addr { font-size: 13px; color: var(--muted); margin-top: 1px; }
+.chip { flex: none; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 9px; white-space: nowrap; }
+.chip.not_sent { background: #EFEAE2; color: var(--muted); }
+.chip.sent { background: var(--gold-soft); color: var(--gold); }
+.chip.due { background: #F6E6D6; color: var(--warn); }
+.chip.replied { background: #E2F0E6; color: var(--ok); }
+.people { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 9px 0 2px; font-size: 14px; }
+.person { display: inline-flex; align-items: center; gap: 5px; }
+.dot { width: 18px; height: 18px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 11px; font-weight: 600; }
+.dot.y { background: var(--ok); color: #fff; }
+.dot.n { background: #DDD7D0; color: #5E5852; }
+.dot.q { background: #F1ECE4; color: var(--muted); }
+.diet { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.meta { font-size: 13px; color: var(--muted); margin-top: 6px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid transparent; font-weight: 600; font-size: 15px; cursor: pointer; text-decoration: none; }
+.btn.wa { background: var(--wa); color: #fff; flex: 1 1 140px; }
+.btn.sms { background: #fff; color: var(--gold); border-color: #D8C49A; flex: 1 1 110px; }
+.btn.plain { background: none; color: var(--muted); padding: 0 6px; min-height: 36px; font-weight: 500; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+.btn[disabled] { opacity: .55; cursor: wait; }
+.btn svg { width: 18px; height: 18px; }
+.err { margin-top: 8px; font-size: 14px; color: #A33A2B; }
+.empty { text-align: center; color: var(--muted); padding: 30px 10px; }
+
+.msg { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.msg-head { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--muted); }
+.msg-head b { color: var(--ink); font-weight: 600; font-size: 15px; }
+.msg p { margin: 6px 0 0; white-space: pre-wrap; }
+
+.foot { margin-top: 26px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; font-size: 13px; color: var(--muted); }
+.notice { margin: 40px auto; max-width: 420px; text-align: center; }
+.notice h1 { margin-bottom: 10px; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 120px); background: var(--ink); color: #fff; padding: 11px 16px; border-radius: 10px; font-size: 14px; max-width: calc(100% - 32px); transition: transform .3s ease; z-index: 9; }
+.toast.show { transform: translate(-50%, 0); }
+@media (max-width: 380px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+@media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <section class="notice" id="noKey" hidden>
+    <h1>Sending page</h1>
+    <p>Open this page from your private link. Ask Claude for it, or find it in the Sheet under Wedding &gt; Show my sending page links.</p>
+  </section>
+
+  <div id="main" hidden>
+    <header>
+      <h1>Invitations</h1>
+      <span class="who" id="who"></span>
+    </header>
+    <div class="sidebar" role="group" aria-label="Whose guests">
+      <button type="button" data-side="mine" aria-pressed="true">My guests</button>
+      <button type="button" data-side="other" aria-pressed="false" id="otherBtn">Other side</button>
+      <button type="button" data-side="all" aria-pressed="false">Both</button>
+    </div>
+
+    <div class="stats" id="stats"></div>
+    <p class="progress" id="progress"></p>
+    <p class="deadline" id="deadline"></p>
+
+    <div class="tabs" role="tablist" id="tabs">
+      <button type="button" role="tab" data-tab="send" aria-selected="true">To send<span class="n"></span></button>
+      <button type="button" role="tab" data-tab="due" aria-selected="false">Reminders due<span class="n"></span></button>
+      <button type="button" role="tab" data-tab="waiting" aria-selected="false">Waiting<span class="n"></span></button>
+      <button type="button" role="tab" data-tab="replied" aria-selected="false">Replied<span class="n"></span></button>
+    </div>
+
+    <input class="search" id="search" type="search" placeholder="Search names" aria-label="Search names" autocomplete="off">
+    <p class="hint" id="hint"></p>
+    <div class="list" id="list" aria-live="polite"></div>
+
+    <div class="foot">
+      <span id="updated"></span>
+      <span>
+        <button type="button" class="btn plain" id="refresh">Refresh</button>
+        <button type="button" class="btn plain" id="csv">Download guest list (CSV)</button>
+      </span>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="../js/config.js"></script>
+<script src="send.js"></script>
+</body>
+</html>

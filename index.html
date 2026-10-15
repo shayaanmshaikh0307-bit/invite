@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your invitation</title>
+<meta name="description" content="A personal invitation. Tap to open.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#D9D2C5">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta property="og:type" content="website">
+<meta property="og:title" content="You're invited">
+<meta property="og:description" content="A personal invitation. Tap to open.">
+<meta property="og:image" content="https://shayaanmshaikh0307-bit.github.io/invite/og-image.jpg">
+<meta property="og:image:secure_url" content="https://shayaanmshaikh0307-bit.github.io/invite/og-image.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A gold envelope on linen">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preload" href="fonts/pinyon-script-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/cormorant-garamond-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/amiri-bismillah-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="art/textures/linen.webp" as="image" type="image/webp">
+<link rel="stylesheet" href="css/invite.css">
+</head>
+<body>
+<!--BUILD:BODY-START-->
+<div class="linen" aria-hidden="true"></div>
+
+<div class="topbar" id="topbar">
+  <button type="button" class="textlink" id="replayBtn" hidden>Replay</button>
+  <button type="button" class="textlink" id="flipBtn" aria-pressed="false" hidden>Details</button>
+</div>
+
+<main class="stage" id="stage" aria-live="polite">
+  <!-- Closed envelope, address side -->
+  <div class="env-face" id="envFace" role="button" tabindex="0" aria-label="Open your invitation">
+    <svg class="env-folds" viewBox="0 0 300 200" preserveAspectRatio="none" aria-hidden="true">
+      <path class="emboss" d="M0,0 L150,112 L300,0"/>
+      <path class="emboss" d="M0,200 C40,160 110,104 150,92 C190,104 260,160 300,200"/>
+    </svg>
+    <div class="stamp" aria-hidden="true">
+      <svg class="stamp-svg" viewBox="0 0 100 122">
+        <defs>
+          <mask id="perf">
+            <rect width="100" height="122" fill="#fff"/>
+            <g id="perfDots" fill="#000"></g>
+          </mask>
+          <clipPath id="stampArt"><rect x="9" y="9" width="82" height="104"/></clipPath>
+        </defs>
+        <rect width="100" height="122" fill="#FBFAF7" mask="url(#perf)"/>
+        <rect x="9" y="9" width="82" height="104" fill="#F5ECD9"/>
+        <image class="stamp-flower" clip-path="url(#stampArt)" x="0" y="4" width="104" height="104" preserveAspectRatio="xMidYMid slice"/>
+        <rect x="12" y="12" width="76" height="98" fill="none" stroke="#C9AA6A" stroke-width=".6"/>
+      </svg>
+    </div>
+    <svg class="postmark" viewBox="0 0 220 120" aria-hidden="true">
+      <defs>
+        <path id="pmTop" d="M28,60 A32,32 0 0 1 92,60"/>
+        <path id="pmBot" d="M24,60 A36,36 0 0 0 96,60"/>
+      </defs>
+      <g fill="none" stroke="currentColor">
+        <circle cx="60" cy="60" r="42" stroke-width="1.4"/>
+        <circle cx="60" cy="60" r="38.5" stroke-width=".6"/>
+        <path stroke-width="1.6" d="M104,40 q9,-6 18,0 t18,0 t18,0 t18,0 t18,0 t18,0"/>
+        <path stroke-width="1.6" d="M104,52 q9,-6 18,0 t18,0 t18,0 t18,0 t18,0 t18,0"/>
+        <path stroke-width="1.6" d="M104,64 q9,-6 18,0 t18,0 t18,0 t18,0 t18,0 t18,0"/>
+        <path stroke-width="1.6" d="M104,76 q9,-6 18,0 t18,0 t18,0 t18,0 t18,0 t18,0"/>
+      </g>
+      <g fill="currentColor" class="pm-text">
+        <text><textPath href="#pmTop" startOffset="50%" text-anchor="middle" id="pmPlace"></textPath></text>
+        <text x="60" y="66" text-anchor="middle" class="pm-centre" id="pmInitials"></text>
+        <text dy="9"><textPath href="#pmBot" startOffset="50%" text-anchor="middle" id="pmDate"></textPath></text>
+      </g>
+    </svg>
+    <p class="addressee" id="addressee">&nbsp;</p>
+  </div>
+
+  <!-- Envelope back: inside panel + open flap (behind the card) -->
+  <div class="env-back" id="envBack" aria-hidden="true">
+    <div class="env-inside"></div>
+    <div class="flap-open" id="flapOpen">
+      <div class="flap-shadow"></div>
+      <div class="flap-paper"><div class="flap-liner"></div></div>
+    </div>
+  </div>
+
+  <!-- The invitation card -->
+  <div class="card-mover" id="cardMover">
+    <div class="card-flipper" id="cardFlipper">
+      <section class="card-face card-front" id="cardFront" aria-label="Invitation">
+        <div class="paper"></div>
+        <div class="floral floral-tr" data-slot="top-right" aria-hidden="true"></div>
+        <div class="floral floral-bl" data-slot="bottom-left" aria-hidden="true"></div>
+        <div class="card-rule" aria-hidden="true"></div>
+        <div class="card-text">
+          <div class="bismillah" id="bismillah" lang="ar" dir="rtl" aria-hidden="true">بِسْمِ ٱللَّٰهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>
+          <p class="bismillah-en" data-c="bismillahEnglish"></p>
+          <p class="invite-line" data-c="invitationLine"></p>
+          <div class="names">
+            <p class="name" data-name="brideName"></p>
+            <p class="parentage" data-c="brideParents"></p>
+            <p class="to" data-c="joiner"></p>
+            <p class="name" data-name="groomName"></p>
+          </div>
+          <p class="date" data-c="dateLine"></p>
+          <p class="time" data-c="timeLine"></p>
+          <p class="venue" data-c="venueName"></p>
+          <p class="area" data-c="venueArea"></p>
+        </div>
+        <p class="signoff" data-c="signoff"></p>
+      </section>
+      <section class="card-face card-back" id="cardBack" aria-label="Details" inert>
+        <div class="paper"></div>
+        <div class="floral floral-back" data-slot="top-right" aria-hidden="true"></div>
+        <div class="card-rule" aria-hidden="true"></div>
+        <div class="back-text">
+          <h2 class="back-h">The day</h2>
+          <dl class="schedule" id="schedule"></dl>
+          <h2 class="back-h">The venue</h2>
+          <address class="address" id="address"></address>
+          <a class="pill-link" id="directions" target="_blank" rel="noopener">Directions</a>
+          <h2 class="back-h" id="notesH">Notes</h2>
+          <p class="notes" id="notes"></p>
+          <h2 class="back-h">Save the date</h2>
+          <div class="cal-links">
+            <a class="pill-link" id="calGoogle" target="_blank" rel="noopener">Google</a>
+            <a class="pill-link" id="calApple" href="#">Apple</a>
+            <a class="pill-link" id="calOutlook" target="_blank" rel="noopener">Outlook</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Envelope pocket + closed flap (in front of the card) -->
+  <div class="env-front" id="envFront" aria-hidden="true">
+    <div class="pocket"></div>
+    <svg class="pocket-lines" viewBox="0 0 300 200" preserveAspectRatio="none">
+      <path class="edge" d="M0,0 L150,104 L300,0"/>
+      <path class="edge soft" d="M0,200 C40,160 110,104 150,92 C190,104 260,160 300,200"/>
+    </svg>
+    <div class="flap-closed" id="flapClosed">
+      <div class="flap-paper"></div>
+      <svg class="flap-edge" viewBox="0 0 300 112" preserveAspectRatio="none"><path d="M0,0 L141,106 Q150,112 159,106 L300,0"/></svg>
+    </div>
+  </div>
+</main>
+
+<p class="tap-hint" id="tapHint" aria-hidden="true">Tap to open</p>
+
+<!-- Invalid / missing link -->
+<section class="notice" id="notice" hidden>
+  <div class="notice-card">
+    <p class="notice-script">Your invitation</p>
+    <h1 class="notice-h" id="noticeTitle">We couldn't open this invitation</h1>
+    <p class="notice-p" id="noticeBody">The link looks incomplete. Please open it exactly as it was sent to you, or ask whoever sent it for a fresh link.</p>
+  </div>
+</section>
+
+<!-- Sticky RSVP button -->
+<div class="rsvp-bar" id="rsvpBar" hidden>
+  <button type="button" class="rsvp-btn" id="rsvpBtn">RSVP</button>
+</div>
+
+<!-- RSVP sheet -->
+<div class="sheet-scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+  <header class="sheet-head">
+    <button type="button" class="back-link" id="sheetBack"><span aria-hidden="true">‹</span> Back</button>
+    <h2 class="sheet-title" id="sheetTitle" tabindex="-1">RSVP</h2>
+    <span></span>
+  </header>
+  <div class="sheet-body" id="sheetBody"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite" hidden>
+  <p class="toast-msg" id="toastMsg"></p>
+  <button type="button" class="toast-link" id="toastLink">VIEW RSVP</button>
+</div>
+
+<!-- Preview-only controls (removed when the real backend is connected) -->
+<div class="preview" id="preview" hidden>
+  <button type="button" class="preview-pill" id="previewToggle" aria-expanded="false" aria-controls="previewPanel">Preview</button>
+  <div class="preview-panel" id="previewPanel" hidden>
+    <p class="preview-h">Guest</p>
+    <button type="button" data-state="fresh">New household of 4</button>
+    <button type="button" data-state="plusone">Single guest with plus-one</button>
+    <button type="button" data-state="replied">Already replied</button>
+    <button type="button" data-state="closed">After the deadline</button>
+    <button type="button" data-state="invalid">Invalid link</button>
+    <p class="preview-h">Florals</p>
+    <button type="button" data-art="painted">Painted watercolour</button>
+    <button type="button" data-art="svg">SVG-filter watercolour</button>
+    <button type="button" data-art="placeholder">Clean placeholder</button>
+  </div>
+</div>
+<!--BUILD:BODY-END-->
+<script src="js/config.js" defer></script>
+<script src="js/api.js" defer></script>
+<script src="js/florals.js" defer></script>
+<script src="js/app.js" defer></script>
+</body>
+</html>
