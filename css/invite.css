@@ -328,14 +328,16 @@ button { font: inherit; color: inherit; }
 .back-text {
   position: absolute; z-index: 2; inset: 10% 11% 9%;
   display: flex; flex-direction: column; align-items: center; text-align: center;
-  font-family: var(--f-serif); font-size: max(14.5px, calc(var(--u) * 3.7)); line-height: 1.28;
+  font-family: var(--f-serif); font-size: calc(max(14.5px, calc(var(--u) * 3.7)) * var(--back-scale, 1)); line-height: 1.28;
   overflow-y: auto; overscroll-behavior: contain;
 }
 .back-h {
-  margin: calc(var(--u) * 3.6) 0 calc(var(--u) * 1.2);
-  font-family: var(--f-sc); font-weight: 500; font-size: max(14.5px, calc(var(--u) * 3.8)); letter-spacing: .24em; padding-left: .24em;
+  margin: calc(var(--u) * 3.6 * var(--back-scale, 1)) 0 calc(var(--u) * 1.2 * var(--back-scale, 1));
+  font-family: var(--f-sc); font-weight: 500; font-size: calc(max(14.5px, calc(var(--u) * 3.8)) * var(--back-scale, 1)); letter-spacing: .24em; padding-left: .24em;
 }
 .back-h:first-child { margin-top: 0; }
+/* very small screens only: the last lines fade out gently to show there is more to scroll */
+.back-text.scrolls { padding-bottom: 1.6em; -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent); mask-image: linear-gradient(to bottom, #000 86%, transparent); }
 .schedule { display: grid; grid-template-columns: auto auto; column-gap: 1.1em; row-gap: .15em; margin: 0; }
 .schedule dt { text-align: right; font-style: italic; font-variant-numeric: tabular-nums lining-nums; }
 .schedule dd { margin: 0; text-align: left; }
@@ -343,9 +345,9 @@ button { font: inherit; color: inherit; }
 .notes { margin: 0; max-width: 30ch; }
 .pill-link {
   display: inline-flex; align-items: center; justify-content: center;
-  min-height: 38px; padding: 0 1em; margin-top: calc(var(--u) * 1.6);
+  min-height: max(32px, calc(38px * var(--back-scale, 1))); padding: 0 1em; margin-top: calc(var(--u) * 1.6 * var(--back-scale, 1));
   border: 1px solid var(--latte); border-radius: 999px;
-  font-family: var(--f-sc); font-size: max(14.5px, calc(var(--u) * 3.6)); letter-spacing: .12em;
+  font-family: var(--f-sc); font-size: calc(max(14.5px, calc(var(--u) * 3.6)) * var(--back-scale, 1)); letter-spacing: .12em;
   color: var(--gold-ink); text-decoration: none; background: rgba(255, 255, 255, .35);
 }
 .cal-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }

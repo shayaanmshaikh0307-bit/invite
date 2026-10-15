@@ -134,6 +134,22 @@
     r.setProperty("--hint-y", envY + eh / 2 + 18 + "px");
   }
 
+  /* The back of the card: text shrinks just enough for everything to fit without
+     scrolling (never below 80% size; on very small screens the rest scrolls). */
+  function fitBack() {
+    var box = document.querySelector(".back-text");
+    if (!box) return;
+    var root = document.documentElement.style;
+    root.setProperty("--back-scale", "1");
+    box.classList.remove("scrolls");
+    var scale = 1;
+    for (var i = 0; i < 4 && box.scrollHeight > box.clientHeight + 1 && scale > 0.8; i++) {
+      scale = Math.max(0.8, scale * (box.clientHeight / box.scrollHeight) * 0.99);
+      root.setProperty("--back-scale", scale.toFixed(3));
+    }
+    box.classList.toggle("scrolls", box.scrollHeight > box.clientHeight + 1);
+  }
+
   /* Both names share one size, shrunk only as far as needed for the longer one to fit the card. */
   function fitNames() {
     var box = document.querySelector(".names");
@@ -261,7 +277,7 @@
 
   function finishOpen() {
     state.animating = false;
-    if (G && (G.W !== window.innerWidth || G.H !== window.innerHeight)) { layout(); fitNames(); }
+    if (G && (G.W !== window.innerWidth || G.H !== window.innerHeight)) { layout(); fitNames(); fitBack(); }
     showOpen();
   }
 
@@ -603,7 +619,7 @@
     var same = JSON.stringify(inv.content) === JSON.stringify(BASE) && inv.addressee === state.invite.addressee && inv.side === state.invite.side;
     if (!els.sheet.hidden) { state.invite = inv; return; } // never change a form under someone's fingers
     show(inv);
-    if (!same && !state.animating) { layout(); fitNames(); if (state.opened) showOpen(); }
+    if (!same && !state.animating) { layout(); fitNames(); fitBack(); if (state.opened) showOpen(); }
   }
 
   function boot(code, opts) {
@@ -657,6 +673,7 @@
         hideLoading();
         els.rsvpBar.hidden = false;
         fitNames();
+        fitBack();
         els.stage.style.opacity = "1";
         var fade = els.stage.animate ? els.stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450 }) : null;
         var hint = function () { if (!state.opened && !state.animating) { void els.tapHint.offsetWidth; els.tapHint.classList.add("show"); } };
@@ -671,7 +688,7 @@
     var s = base.sides && base.sides[inv.side];
     if (s) {
       if (s.timeLine) c.timeLine = s.timeLine;
-      if (s.arrivalTime) c.schedule = c.schedule.map(function (it) { return it.arrival ? { time: s.arrivalTime, item: it.item } : it; });
+      if (s.arrivalTime) c.schedule = c.schedule.map(function (it) { return it.arrival ? { time: s.arrivalTime, item: s.arrivalItem || it.item } : it; });
       if (s.calendarStart) c.calendar.start = s.calendarStart;
     }
     if (inv.deadline) c.rsvpDeadline = inv.deadline;
@@ -744,6 +761,7 @@
       if (!state.invite || state.animating) return;
       layout();
       fitNames();
+      fitBack();
       if (state.opened) showOpen(); else { setT(els.envFace, T.envFace()); setT(els.cardMover, T.cardIn()); [els.envBack, els.envFront].forEach(function (e) { setT(e, T.envBackFlipStart()); }); }
     }, 120);
   });
