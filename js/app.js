@@ -552,9 +552,18 @@
      in parallel with fetching the invitation. */
   var TEXTURES = ["envelope", "liner", "paper", "linen"];
   var artReady = null;
+  // downloaded for certain; decoded too where the browser will do it promptly
+  // (some in-app browsers only decode while drawing, so decoding is never waited on for long)
   function decodeImg(img) {
-    if (img.decode) return img.decode().catch(function () {});
-    return new Promise(function (r) { if (img.complete) r(); else { img.onload = img.onerror = function () { r(); }; } });
+    var loaded = new Promise(function (r) {
+      if (img.complete) return r();
+      img.addEventListener("load", function () { r(); }, { once: true });
+      img.addEventListener("error", function () { r(); }, { once: true });
+    });
+    return loaded.then(function () {
+      if (!img.decode || !img.naturalWidth) return;
+      return Promise.race([img.decode().catch(function () {}), wait(300)]);
+    });
   }
   function prepareArt(mode) {
     if (!G) layout();
