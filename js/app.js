@@ -15,7 +15,8 @@
     rsvpBar: $("rsvpBar"), rsvpBtn: $("rsvpBtn"), sheet: $("sheet"), scrim: $("scrim"),
     sheetBody: $("sheetBody"), sheetTitle: $("sheetTitle"), sheetBack: $("sheetBack"),
     toast: $("toast"), toastMsg: $("toastMsg"), toastLink: $("toastLink"),
-    notice: $("notice"), noticeTitle: $("noticeTitle"), noticeBody: $("noticeBody"),
+    notice: $("notice"), noticeTitle: $("noticeTitle"), noticeBody: $("noticeBody"), noticeRetry: $("noticeRetry"),
+    loading: $("loading"), loadingText: $("loadingText"),
     topbar: $("topbar"), preview: $("preview")
   };
 
@@ -517,18 +518,30 @@
 
   /* ------------------------------------------------------------ notice */
   function showNotice(kind) {
+    hideLoading();
+    els.noticeRetry.hidden = kind !== "error";
     els.stage.hidden = true;
     els.rsvpBar.hidden = true;
     els.topbar.hidden = true;
     els.tapHint.classList.remove("show");
     if (kind === "error") {
       els.noticeTitle.textContent = "We couldn't load your invitation";
-      els.noticeBody.textContent = "Check your connection and open the link again. If it keeps happening, " + C.contactLine + ".";
+      els.noticeBody.textContent = "This is usually a weak connection. Tap Try again, or open the link again in a moment. If it keeps happening, " + C.contactLine + ".";
     } else {
       els.noticeTitle.textContent = "We couldn't open this invitation";
       els.noticeBody.textContent = "The link looks incomplete. Please open it exactly as it was sent to you, or ask whoever sent it for a fresh link.";
     }
     els.notice.hidden = false;
+  }
+
+  /* ------------------------------------------------------------ loading */
+  function showLoading(text) {
+    if (text) els.loadingText.textContent = text;
+    els.loading.hidden = false;
+  }
+  function hideLoading() {
+    clearTimeout(state.loadingTimer);
+    els.loading.hidden = true;
   }
 
   /* ------------------------------------------------------------ boot */
@@ -546,8 +559,13 @@
 
     if (!code || !/^[A-Za-z0-9]{10,24}$/.test(code)) { showNotice("invalid"); return Promise.resolve(); }
 
-    return API.getInvite(code, { forceLocked: state.forceLocked }).then(function (inv) {
+    els.loadingText.textContent = "is on its way\u2026";
+    clearTimeout(state.loadingTimer);
+    state.loadingTimer = setTimeout(function () { showLoading(); }, 500);
+    var onRetry = function () { showLoading("is taking a little longer than usual\u2026"); };
+    return API.getInvite(code, { forceLocked: state.forceLocked, onRetry: onRetry }).then(function (inv) {
       if (!inv || !inv.ok) { showNotice(inv && inv.error === "not_found" ? "invalid" : "error"); return; }
+      hideLoading();
       state.invite = inv;
       BASE = inv.content;
       C = contentFor(BASE, inv);
@@ -651,6 +669,8 @@
       if (state.opened) showOpen(); else { setT(els.envFace, T.envFace()); setT(els.cardMover, T.cardIn()); [els.envBack, els.envFront].forEach(function (e) { setT(e, T.envBackFlipStart()); }); }
     }, 120);
   });
+
+  els.noticeRetry.addEventListener("click", function () { boot(state.code, { forceLocked: state.forceLocked }); });
 
   API.ready.then(function () {
     setupPreview();

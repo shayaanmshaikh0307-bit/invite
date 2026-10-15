@@ -479,6 +479,20 @@ button { font: inherit; color: inherit; }
 .notice-h { margin: 14px 0 10px; font-family: var(--f-sc); font-weight: 500; font-size: 19px; letter-spacing: .12em; }
 .notice-p { margin: 0; font-family: var(--f-serif); font-size: 19px; line-height: 1.4; }
 
+.notice-retry { margin-top: 22px; min-width: 160px; }
+
+/* shown while the invitation is fetched, so a slow connection never looks blank */
+.loading { position: fixed; inset: 0; display: grid; place-content: center; justify-items: center; gap: 6px; z-index: 15; text-align: center; color: var(--ink); opacity: 0; animation: loading-in .6s ease forwards; }
+.loading[hidden] { display: none; }
+.loading-script { margin: 0; font-family: var(--f-script); font-size: 44px; color: var(--gold-ink); }
+.loading-p { margin: 0; font-family: var(--f-serif); font-size: 20px; }
+.loading-dots { display: flex; gap: 8px; margin-top: 14px; }
+.loading-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--gold-ink); opacity: .25; animation: loading-dot 1.4s ease-in-out infinite; }
+.loading-dots i:nth-child(2) { animation-delay: .2s; }
+.loading-dots i:nth-child(3) { animation-delay: .4s; }
+@keyframes loading-in { to { opacity: 1; } }
+@keyframes loading-dot { 0%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
 /* preview controls */
 .preview { position: fixed; z-index: 45; left: max(10px, env(safe-area-inset-left, 0px)); bottom: calc(70px + env(safe-area-inset-bottom, 0px)); font-family: var(--f-sans); }
 .preview-pill { border: 0; border-radius: 999px; padding: 7px 13px; background: rgba(46, 44, 42, .78); color: #fff; font-size: 12px; letter-spacing: .08em; cursor: pointer; }

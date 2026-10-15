@@ -20,9 +20,19 @@
     });
   }
 
-  function realGet(code) {
-    return fetch(API_URL + "?i=" + encodeURIComponent(code), { method: "GET", redirect: "follow" })
-      .then(function (r) { return r.json(); });
+  function getOnce(code, ms) {
+    var ctl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctl) ctl.abort(); }, ms);
+    return fetch(API_URL + "?i=" + encodeURIComponent(code), { method: "GET", redirect: "follow", signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { return r.json(); })
+      .then(function (j) { clearTimeout(timer); return j; }, function (e) { clearTimeout(timer); throw e; });
+  }
+  // Reading an invitation is safe to repeat, so a slow or dropped attempt is retried.
+  function realGet(code, onRetry) {
+    return getOnce(code, 20000).catch(function () {
+      if (onRetry) onRetry();
+      return getOnce(code, 30000);
+    });
   }
   function realPost(body) {
     // text/plain keeps this a "simple" request, so Apps Script needs no CORS preflight
@@ -39,7 +49,7 @@
     seedReplied: function (code) { if (demo()) demo().seedReplied(code); },
     icsUrl: function (code) { return API_URL ? API_URL + "?i=" + encodeURIComponent(code) + "&ics=1" : "#"; },
     getInvite: function (code, opts) {
-      if (API_URL) return realGet(code);
+      if (API_URL) return realGet(code, opts && opts.onRetry);
       return demo() ? demo().get(code, opts || {}) : Promise.resolve({ ok: false, error: "not_found" });
     },
     submitRsvp: function (code, payload, opts) {

@@ -25,7 +25,7 @@
 <link rel="preload" href="fonts/cormorant-garamond-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/amiri-bismillah-700.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="art/textures/linen.webp" as="image" type="image/webp">
-<link rel="stylesheet" href="css/invite.css">
+<link rel="stylesheet" href="css/invite.css?v=5">
 </head>
 <body>
 <!--BUILD:BODY-START-->
@@ -154,11 +154,18 @@
 <p class="tap-hint" id="tapHint" aria-hidden="true">Tap to open</p>
 
 <!-- Invalid / missing link -->
+<div class="loading" id="loading" hidden role="status" aria-live="polite">
+  <p class="loading-script">Your invitation</p>
+  <p class="loading-p" id="loadingText">is on its way&hellip;</p>
+  <span class="loading-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+</div>
+
 <section class="notice" id="notice" hidden>
   <div class="notice-card">
     <p class="notice-script">Your invitation</p>
     <h1 class="notice-h" id="noticeTitle">We couldn't open this invitation</h1>
     <p class="notice-p" id="noticeBody">The link looks incomplete. Please open it exactly as it was sent to you, or ask whoever sent it for a fresh link.</p>
+    <button type="button" class="btn btn-line notice-retry" id="noticeRetry" hidden>Try again</button>
   </div>
 </section>
 
@@ -201,9 +208,9 @@
   </div>
 </div>
 <!--BUILD:BODY-END-->
-<script src="js/config.js" defer></script>
-<script src="js/api.js" defer></script>
-<script src="js/florals.js" defer></script>
-<script src="js/app.js" defer></script>
+<script src="js/config.js?v=5" defer></script>
+<script src="js/api.js?v=5" defer></script>
+<script src="js/florals.js?v=5" defer></script>
+<script src="js/app.js?v=5" defer></script>
 </body>
 </html>
