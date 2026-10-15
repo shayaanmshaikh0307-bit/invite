@@ -52,7 +52,6 @@
     p.remove();
     return out;
   }
-  function openedKey() { return "opened-" + state.code; }
   function isLocked() { return !!(state.invite && state.invite.locked); }
   function responded() { return !!(state.invite && state.invite.respondedAt); }
 
@@ -197,7 +196,6 @@
     if (state.opened || state.animating) return;
     state.animating = true;
     els.tapHint.classList.remove("show");
-    store.set(openedKey(), "1");
 
     if (reduceMotion || !els.envFace.animate) {
       var fadeOut = els.envFace.animate ? anim(els.envFace, [{ opacity: 1 }, { opacity: 0 }], 350) : Promise.resolve();
@@ -261,6 +259,7 @@
 
   function finishOpen() {
     state.animating = false;
+    if (G && (G.W !== window.innerWidth || G.H !== window.innerHeight)) { layout(); fitNames(); }
     showOpen();
   }
 
@@ -443,6 +442,7 @@
       inv.plusOne = payload.plusOne;
       inv.phone = payload.phone;
       inv.respondedAt = res.respondedAt;
+      API.remember(state.code, inv);
       els.rsvpBtn.textContent = "View RSVP";
       state.view = "done";
       renderSheet();
@@ -544,7 +544,56 @@
     els.loading.hidden = true;
   }
 
+  /* ------------------------------------------------------------ artwork */
+  /* Every image the opening uses is downloaded AND decoded before the envelope is
+     shown, so nothing pops in or stutters mid-animation on a phone. Starts at once,
+     in parallel with fetching the invitation. */
+  var TEXTURES = ["envelope", "liner", "paper", "linen"];
+  var artReady = null;
+  function decodeImg(img) {
+    if (img.decode) return img.decode().catch(function () {});
+    return new Promise(function (r) { if (img.complete) r(); else { img.onload = img.onerror = function () { r(); }; } });
+  }
+  function prepareArt(mode) {
+    if (!G) layout();
+    window.InviteFlorals.fill(mode || "painted", G.cw);
+    // the same files the stylesheet uses (WebP, or JPEG on the rare phone without WebP)
+    var jobs = TEXTURES.map(function (t) {
+      var i = new Image();
+      i.src = "art/textures/" + t + ".webp";
+      return decodeImg(i).then(function () {
+        if (i.naturalWidth) return;
+        var j = new Image();
+        j.src = "art/textures/" + t + ".jpg";
+        return decodeImg(j);
+      });
+    });
+    document.querySelectorAll(".floral img").forEach(function (img) { jobs.push(decodeImg(img)); });
+    return Promise.all(jobs);
+  }
+  // never hold a guest back for artwork: after the invitation arrives, wait at most this long
+  function artOrTimeout(ms) { return Promise.race([artReady || Promise.resolve(), wait(ms)]); }
+
   /* ------------------------------------------------------------ boot */
+  function show(inv) {
+    state.invite = inv;
+    BASE = inv.content;
+    C = contentFor(BASE, inv);
+    applyContent();
+    els.addressee.textContent = inv.addressee;
+    els.envFace.setAttribute("aria-label", "Open your invitation, addressed to " + inv.addressee);
+    els.rsvpBtn.textContent = inv.respondedAt ? "View RSVP" : "RSVP";
+  }
+
+  /* A fresher copy arrived after a remembered one was shown: take its answers and
+     wording without disturbing the envelope or an opening in progress. */
+  function refresh(inv) {
+    var same = JSON.stringify(inv.content) === JSON.stringify(BASE) && inv.addressee === state.invite.addressee && inv.side === state.invite.side;
+    if (!els.sheet.hidden) { state.invite = inv; return; } // never change a form under someone's fingers
+    show(inv);
+    if (!same && !state.animating) { layout(); fitNames(); if (state.opened) showOpen(); }
+  }
+
   function boot(code, opts) {
     opts = opts || {};
     state.code = code;
@@ -559,32 +608,47 @@
 
     if (!code || !/^[A-Za-z0-9]{10,24}$/.test(code)) { showNotice("invalid"); return Promise.resolve(); }
 
-    els.loadingText.textContent = "is on its way\u2026";
-    clearTimeout(state.loadingTimer);
-    state.loadingTimer = setTimeout(function () { showLoading(); }, 500);
-    var onRetry = function () { showLoading("is taking a little longer than usual\u2026"); };
-    return API.getInvite(code, { forceLocked: state.forceLocked, onRetry: onRetry }).then(function (inv) {
+    var remembered = API.cachedInvite(code);
+    var fresh = API.getInvite(code, {
+      forceLocked: state.forceLocked,
+      onRetry: function () { if (!state.invite) showLoading("is taking a little longer than usual\u2026"); }
+    });
+
+    var first;
+    if (remembered) {
+      first = Promise.resolve(remembered);
+      fresh.then(function (inv) {
+        if (inv && inv.ok && state.code === code && state.invite) refresh(inv);
+        else if (inv && inv.error === "not_found" && state.code === code) showNotice("invalid");
+      }, function () { /* keep showing the remembered copy */ });
+    } else {
+      els.loadingText.textContent = "is on its way\u2026";
+      clearTimeout(state.loadingTimer);
+      state.loadingTimer = setTimeout(function () { showLoading(); }, 500);
+      first = fresh;
+    }
+
+    return first.then(function (inv) {
+      if (state.code !== code) return;
       if (!inv || !inv.ok) { showNotice(inv && inv.error === "not_found" ? "invalid" : "error"); return; }
-      hideLoading();
-      state.invite = inv;
-      BASE = inv.content;
-      C = contentFor(BASE, inv);
-      applyContent();
-      els.addressee.textContent = inv.addressee;
-      els.envFace.setAttribute("aria-label", "Open your invitation, addressed to " + inv.addressee);
-      els.rsvpBtn.textContent = inv.respondedAt ? "View RSVP" : "RSVP";
-      els.rsvpBar.hidden = false;
+      show(inv);
       layout();
-      window.InviteFlorals.fill(state.art || (C.art && C.art.florals) || "painted", G.cw);
-      var seen = store.get(openedKey()) === "1";
-      if (seen) showOpen(); else showClosed();
-      fitNames();
-      return fontsReady().then(function () {
+      var mode = state.art || (C.art && C.art.florals) || "painted";
+      if (mode !== "painted" || !artReady) artReady = prepareArt(mode);
+      // every visit opens on the addressed envelope; the guest taps to open it
+      showClosed();
+      els.tapHint.classList.remove("show");
+      return Promise.all([fontsReady(), artOrTimeout(3000)]).then(function () {
+        if (state.code !== code) return;
+        hideLoading();
+        els.rsvpBar.hidden = false;
         fitNames();
-        els.stage.animate ? els.stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, fill: "forwards" }) : null;
         els.stage.style.opacity = "1";
+        var fade = els.stage.animate ? els.stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450 }) : null;
+        var hint = function () { if (!state.opened && !state.animating) { void els.tapHint.offsetWidth; els.tapHint.classList.add("show"); } };
+        if (fade) fade.finished.then(hint, hint); else hint();
       });
-    }).catch(function () { showNotice("error"); });
+    }).catch(function () { if (!state.invite) showNotice("error"); });
   }
 
   /* The household's side picks its arrival time; the server's deadline is authoritative. */
@@ -671,6 +735,9 @@
   });
 
   els.noticeRetry.addEventListener("click", function () { boot(state.code, { forceLocked: state.forceLocked }); });
+
+  // start fetching and decoding the artwork straight away, alongside the invitation request
+  try { layout(); artReady = prepareArt("painted"); } catch (e) { artReady = null; }
 
   API.ready.then(function () {
     setupPreview();
