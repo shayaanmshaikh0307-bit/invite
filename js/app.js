@@ -580,9 +580,10 @@
       });
     });
     document.querySelectorAll(".floral img").forEach(function (img) { jobs.push(decodeImg(img)); });
-    return Promise.all(jobs);
+    return Promise.all(jobs).then(function () { mark("art-ready"); });
   }
   // never hold a guest back for artwork: after the invitation arrives, wait at most this long
+  function mark(name) { try { performance.mark(name); } catch (e) { /* timing marks are optional */ } }
   function artOrTimeout(ms) { return Promise.race([artReady || Promise.resolve(), wait(ms)]); }
 
   /* ------------------------------------------------------------ boot */
@@ -649,7 +650,9 @@
       // every visit opens on the addressed envelope; the guest taps to open it
       showClosed();
       els.tapHint.classList.remove("show");
-      return Promise.all([fontsReady(), artOrTimeout(3000)]).then(function () {
+      mark("invite-data");
+      return Promise.all([fontsReady().then(function () { mark("invite-fonts"); }), artOrTimeout(3000).then(function () { mark("invite-art"); })]).then(function () {
+        mark("invite-shown");
         if (state.code !== code) return;
         hideLoading();
         els.rsvpBar.hidden = false;
