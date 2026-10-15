@@ -257,7 +257,12 @@
   }
   $("addToggle").addEventListener("click", function () { openAdd(true); });
   $("addForm").addEventListener("input", function () { addErr(""); });
-  $("addCancel").addEventListener("click", function () { openAdd(false); });
+  // After typing, phones can leave the page unable to scroll fully; a fresh load avoids that.
+  function reloadShowing(after) {
+    try { sessionStorage.setItem("send-after", JSON.stringify(after || {})); } catch (e) { /* fine */ }
+    location.reload();
+  }
+  $("addCancel").addEventListener("click", function () { reloadShowing({}); });
   $("addForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var addr = $("addAddr").value.replace(/\s+/g, " ").trim();
@@ -280,10 +285,7 @@
       go.disabled = false; go.textContent = "Add household";
       if (!r || !r.ok) return addErr(r && r.error === "unauthorised" ? "Only the main sending page can add households." : "That didn't save. Check your connection and try again.");
       if (r.problems && r.problems.length) return addErr("Something in that list couldn't be added (" + r.problems[0].why + "). Nothing has been sent.");
-      openAdd(false);
-      S.side = sideEl.value === mySide() ? "mine" : "other"; S.tab = "send"; S.q = addr; $("search").value = addr;
-      toast("Added. Their invitation is ready below.");
-      load(true);
+      reloadShowing({ side: sideEl.value === mySide() ? "mine" : "other", q: addr, toast: "Added. Their invitation is ready below." });
     }).catch(function () { go.disabled = false; go.textContent = "Add household"; addErr("No connection. Try again."); });
   });
 
@@ -325,5 +327,11 @@
   S.key = (m && m[1]) || store(KEY_STORE);
   if (!S.key && API) { showNoKey(); return; }
   $("main").hidden = false;
-  load();
+  var after = null;
+  try { after = JSON.parse(sessionStorage.getItem("send-after") || "null"); sessionStorage.removeItem("send-after"); } catch (e) { after = null; }
+  if (after) {
+    if (after.side) S.side = after.side;
+    if (after.q) { S.q = after.q; $("search").value = after.q; }
+  }
+  load().then(function () { if (after && after.toast) toast(after.toast); });
 })();
