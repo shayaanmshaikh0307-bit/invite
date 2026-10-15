@@ -164,7 +164,9 @@
     els.flapClosed.style.visibility = "visible";
     setT(els.flapClosed, "perspective(900px) rotateX(0deg)");
     setT(els.flapOpen, "perspective(900px) rotateX(-90deg)");
-    els.cardMover.style.opacity = "0";
+    // all but invisible rather than hidden, so the phone has already drawn the card
+    // before the opening and doesn't pause to draw it mid-animation
+    els.cardMover.style.opacity = "0.001";
     els.cardMover.classList.remove("on-top");
     setT(els.cardMover, T.cardIn());
     setFlipped(false);
