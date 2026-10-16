@@ -295,8 +295,8 @@ button { font: inherit; color: inherit; }
 .name-line {
   display: block; white-space: nowrap;
   font-family: var(--f-script); font-size: calc(var(--u) * 12 * var(--name-scale, 1)); line-height: 1.12;
-  color: #1E1B18;
-  -webkit-text-stroke: .012em #1E1B18; /* a touch of extra weight for the fine script strokes */
+  color: #3A3430;
+  -webkit-text-stroke: .005em #3A3430; /* just enough extra weight for the fine script strokes to read clearly */
   padding: 0 .35em;
 }
 .name-line + .name-line { margin-top: calc(var(--u) * -2.2); }
