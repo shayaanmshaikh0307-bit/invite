@@ -289,17 +289,17 @@ button { font: inherit; color: inherit; }
   font-family: var(--f-serif); font-style: italic; font-size: calc(var(--u) * 3.7); line-height: 1.3;
   white-space: pre-line;
 }
-/* the couple: full names in classic engraved-style serif capitals, gold; a long name breaks over two lines */
+/* the couple: full names in script, in deep ink (as in the reference) so they stand out boldly; a long name breaks over two lines */
 .names { margin-top: calc(var(--u) * 1.6); display: flex; flex-direction: column; align-items: center; width: 100%; }
 .names .name { margin: 0; display: flex; flex-direction: column; align-items: center; }
 .name-line {
   display: block; white-space: nowrap;
-  font-family: var(--f-serif); font-weight: 500; text-transform: uppercase; letter-spacing: .05em;
-  font-size: calc(var(--u) * 8.4 * var(--name-scale, 1)); line-height: 1.12; color: #A88232;
-  padding: .04em .1em 0 .15em; /* the left pad balances the trailing letter-space */
-  background: var(--foil); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  font-family: var(--f-script); font-size: calc(var(--u) * 12 * var(--name-scale, 1)); line-height: 1.12;
+  color: #1E1B18;
+  -webkit-text-stroke: .012em #1E1B18; /* a touch of extra weight for the fine script strokes */
+  padding: 0 .35em;
 }
-.name-line + .name-line { margin-top: 0; }
+.name-line + .name-line { margin-top: calc(var(--u) * -2.2); }
 /* staggered: the lines step across like hand lettering */
 /* padding (not transform) so the auto-fit measures the stepped width too */
 .names.staggered .name.multi .name-line:first-child { padding-right: 1.1em; }
