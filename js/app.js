@@ -700,7 +700,7 @@
   function fontsReady() {
     if (!document.fonts || !document.fonts.load) return Promise.resolve();
     return Promise.race([
-      Promise.all([document.fonts.load('40px "Pinyon Script"'), document.fonts.load('20px "Cormorant Garamond"'), document.fonts.load('20px "Cormorant SC"'), document.fonts.load('700 30px "Amiri Bismillah"', "\u0628\u0633\u0645")]),
+      Promise.all([document.fonts.load('40px "Pinyon Script"'), document.fonts.load('20px "Cormorant Garamond"'), document.fonts.load('500 20px "Cormorant Garamond"'), document.fonts.load('20px "Cormorant SC"'), document.fonts.load('700 30px "Amiri Bismillah"', "\u0628\u0633\u0645")]),
       wait(1800)
     ]).catch(function () {});
   }
