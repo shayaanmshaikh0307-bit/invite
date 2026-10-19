@@ -140,6 +140,7 @@
       }
       acts += '<button type="button" class="btn plain" data-act="copy" data-kind="' + kind + '" data-code="' + h.code + '">Copy message</button>';
       if (!h.hasPhone && kind === "invite") acts += '<button type="button" class="btn plain" data-act="mark" data-code="' + h.code + '">Mark as sent</button>';
+      if (!h.hasPhone && kind === "reminder") acts += '<button type="button" class="btn plain" data-act="nudged" data-code="' + h.code + '"' + (busy ? " disabled" : "") + '>Mark reminder as sent</button>';
     }
     if ((b === "waiting" || b === "due") && h.hasPhone) {
       acts += '<button type="button" class="btn plain" data-act="open" data-kind="invite" data-ch="whatsapp" data-code="' + h.code + '">Resend invitation</button>';
@@ -154,7 +155,7 @@
       (S.side === "all" ? " · " + sideLabel(h.side) : "") + "</div></div>" + chip + "</div>" +
       '<div class="people">' + people + "</div>" +
       (meta.length ? '<div class="meta">' + esc(meta.join(" · ")) + "</div>" : "") +
-      (!h.hasPhone && kind ? '<div class="meta">No mobile number in the Sheet. Copy the message and send it however you like, then tap Mark as sent.</div>' : "") +
+      (!h.hasPhone && kind ? '<div class="meta">No mobile number in the Sheet. Copy the message and send it however you like, then tap ' + (kind === "reminder" ? "Mark reminder as sent" : "Mark as sent") + '.</div>' : "") +
       (acts ? '<div class="actions">' + acts + "</div>" : "") +
       (S.errors[h.code] ? '<div class="err">' + esc(S.errors[h.code]) + "</div>" : "") + "</article>";
   }
@@ -243,6 +244,7 @@
     if (act === "copy") copyText(b.getAttribute("data-kind") === "invite" ? h.links.inviteText : h.links.reminderText, "Message copied with their link");
     if (act === "copylink") copyText(h.links.url, "Their invitation link is copied");
     if (act === "mark") simple(code, { op: "markSent", channel: "other" }, function () { toast("Marked as sent"); });
+    if (act === "nudged") simple(code, { op: "markNudged", channel: "other" }, function () { toast("Reminder marked as sent"); });
     if (act === "unmark") simple(code, { op: "unmarkSent" }, function () { toast("Moved back to To send"); });
     if (act === "pause") simple(code, { op: "pause", paused: b.getAttribute("data-paused") === "1" }, function (r) { toast(r.paused ? "Reminders stopped for this household" : "Reminders allowed again"); });
   });
