@@ -62,7 +62,11 @@
     var names = d.sideNames || { Bride: "Bride", Groom: "Groom" };
     var otherName = names[mySide() === "Groom" ? "Bride" : "Groom"] + "'s";
     $("otherBtn").textContent = otherName;
-    $("addToggle").hidden = !(d.you && d.you.side === "Groom") || !$("addForm").hidden;
+    $("addToggle").hidden = !d.you || !$("addForm").hidden;
+    // the main page chooses the side; the other page always adds to its own side
+    var canChoose = d.you && d.you.side === "Groom";
+    $("addSide").hidden = !canChoose;
+    $("addSideLbl").hidden = !canChoose;
     $("addBrideLbl").textContent = names.Bride + "'s";
     $("addGroomLbl").textContent = names.Groom + "'s";
     $("who").textContent = d.you.name;
@@ -266,6 +270,10 @@
   $("addForm").addEventListener("submit", function (e) {
     e.preventDefault();
     var addr = $("addAddr").value.replace(/\s+/g, " ").trim();
+    if (!$("addSide").hidden) { /* chosen below */ } else {
+      var own = $("addForm").querySelector('input[name=addSide][value="' + mySide() + '"]');
+      if (own) own.checked = true;
+    }
     var sideEl = $("addForm").querySelector("input[name=addSide]:checked");
     var names = $("addNames").value.split(/\n/).map(function (n) { return n.replace(/\s+/g, " ").trim(); }).filter(Boolean);
     var phone = $("addPhone").value.trim();
@@ -283,7 +291,8 @@
     go.disabled = true; go.textContent = "Adding…"; addErr("");
     call({ op: "importRows", rows: rows }, 30000).then(function (r) {
       go.disabled = false; go.textContent = "Add household";
-      if (!r || !r.ok) return addErr(r && r.error === "unauthorised" ? "Only the main sending page can add households." : "That didn't save. Check your connection and try again.");
+      var why = { own_side_only: "This page can only add households to your own side.", name_taken: "That household name is already used on the other side. Add something to make it different, e.g. a surname.", unauthorised: "This page can't add households." };
+      if (!r || !r.ok) return addErr((r && why[r.error]) || "That didn't save. Check your connection and try again.");
       if (r.problems && r.problems.length) return addErr("Something in that list couldn't be added (" + r.problems[0].why + "). Nothing has been sent.");
       reloadShowing({ side: sideEl.value === mySide() ? "mine" : "other", q: addr, toast: "Added. Their invitation is ready below." });
     }).catch(function () { go.disabled = false; go.textContent = "Add household"; addErr("No connection. Try again."); });

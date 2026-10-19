@@ -143,7 +143,7 @@ h1 { margin: 0; font: 500 28px/1.1 var(--f-serif); }
       <h2>Add a household</h2>
       <label class="f" for="addAddr">Name on the envelope</label>
       <input type="text" id="addAddr" maxlength="150" placeholder="e.g. Mr &amp; Mrs Rahman and Family" autocomplete="off">
-      <label class="f">Whose guests</label>
+      <label class="f" id="addSideLbl">Whose guests</label>
       <div class="seg" id="addSide">
         <label><input type="radio" name="addSide" value="Bride"><span id="addBrideLbl">Bride's side</span></label>
         <label><input type="radio" name="addSide" value="Groom"><span id="addGroomLbl">Groom's side</span></label>
@@ -179,6 +179,6 @@ h1 { margin: 0; font: 500 28px/1.1 var(--f-serif); }
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="../js/config.js?v=2"></script>
-<script src="send.js?v=3"></script>
+<script src="send.js?v=4"></script>
 </body>
 </html>
