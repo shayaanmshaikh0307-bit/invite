@@ -139,8 +139,8 @@
         acts += '<button type="button" class="btn sms" data-act="open" data-kind="' + kind + '" data-ch="sms" data-code="' + h.code + '"' + (busy ? " disabled" : "") + ">Text</button>";
       }
       acts += '<button type="button" class="btn plain" data-act="copy" data-kind="' + kind + '" data-code="' + h.code + '">Copy message</button>';
-      if (!h.hasPhone && kind === "invite") acts += '<button type="button" class="btn plain" data-act="mark" data-code="' + h.code + '">Mark as sent</button>';
-      if (!h.hasPhone && kind === "reminder") acts += '<button type="button" class="btn plain" data-act="nudged" data-code="' + h.code + '"' + (busy ? " disabled" : "") + '>Mark reminder as sent</button>';
+      if (kind === "invite") acts += '<button type="button" class="btn plain" data-act="mark" data-code="' + h.code + '">Mark as sent</button>';
+      if (kind === "reminder") acts += '<button type="button" class="btn plain" data-act="nudged" data-code="' + h.code + '"' + (busy ? " disabled" : "") + '>Mark reminder as sent</button>';
     }
     if ((b === "waiting" || b === "due") && h.hasPhone) {
       acts += '<button type="button" class="btn plain" data-act="open" data-kind="invite" data-ch="whatsapp" data-code="' + h.code + '">Resend invitation</button>';
@@ -241,7 +241,7 @@
     var act = b.getAttribute("data-act"); if (!act) return;
     var code = b.getAttribute("data-code"), h = find(code);
     if (act === "open") onOpen(b);
-    if (act === "copy") copyText(b.getAttribute("data-kind") === "invite" ? h.links.inviteText : h.links.reminderText, "Message copied with their link");
+    if (act === "copy") copyText(b.getAttribute("data-kind") === "invite" ? h.links.inviteText : h.links.reminderText, b.getAttribute("data-kind") === "invite" ? "Message copied. After sending, tap Mark as sent" : "Reminder copied. After sending, tap Mark reminder as sent");
     if (act === "copylink") copyText(h.links.url, "Their invitation link is copied");
     if (act === "mark") simple(code, { op: "markSent", channel: "other" }, function () { toast("Marked as sent"); });
     if (act === "nudged") simple(code, { op: "markNudged", channel: "other" }, function () { toast("Reminder marked as sent"); });
