@@ -3,7 +3,7 @@
   var API = (window.INVITE_CONFIG && window.INVITE_CONFIG.apiUrl) || "";
   var KEY_STORE = "send-key";
   var $ = function (id) { return document.getElementById(id); };
-  var S = { key: null, data: null, side: "mine", tab: "send", q: "", busy: {}, errors: {} };
+  var S = { key: null, data: null, side: "mine", tab: "send", q: "", busy: {}, errors: {}, confirmDel: null };
   var mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
@@ -151,12 +151,24 @@
     }
     if (b === "replied") acts += '<button type="button" class="btn plain" data-act="copylink" data-code="' + h.code + '">Copy their link</button>';
 
+    // Delete: only before they reply, and only on this page's own side (the Groom page may do either). Two taps: Delete, then Yes, delete.
+    var canDelete = b !== "replied" && (mySide() === "Groom" || h.side === mySide());
+    var delBox = "";
+    if (canDelete && S.confirmDel === h.code) {
+      delBox = '<div class="confirm" role="group" aria-label="Confirm delete"><p>Delete <strong>' + esc(h.household) + "</strong> and everyone in it?" +
+        (b === "send" ? "" : " They have already been sent their link, and it will stop working.") + " This can't be undone.</p>" +
+        '<div class="actions"><button type="button" class="btn danger" data-act="delyes" data-code="' + h.code + '"' + (busy ? " disabled" : "") + ">Yes, delete</button>" +
+        '<button type="button" class="btn plain" data-act="delno" data-code="' + h.code + '">Cancel</button></div></div>';
+    } else if (canDelete) {
+      acts += '<button type="button" class="btn plain del" data-act="del" data-code="' + h.code + '">Delete household</button>';
+    }
+
     return '<article class="hh"><div class="hh-top"><div><div class="hh-name">' + esc(h.household) + '</div><div class="hh-addr">' + esc(h.addressee) +
       (S.side === "all" ? " · " + sideLabel(h.side) : "") + "</div></div>" + chip + "</div>" +
       '<div class="people">' + people + "</div>" +
       (meta.length ? '<div class="meta">' + esc(meta.join(" · ")) + "</div>" : "") +
       (!h.hasPhone && kind ? '<div class="meta">No mobile number in the Sheet. Copy the message and send it however you like, then tap ' + (kind === "reminder" ? "Mark reminder as sent" : "Mark as sent") + '.</div>' : "") +
-      (acts ? '<div class="actions">' + acts + "</div>" : "") +
+      (acts && !delBox ? '<div class="actions">' + acts + "</div>" : "") + delBox +
       (S.errors[h.code] ? '<div class="err">' + esc(S.errors[h.code]) + "</div>" : "") + "</article>";
   }
 
@@ -178,7 +190,10 @@
     paused: "Reminders are stopped for this household.",
     all_paused: "All reminders are paused in the Sheet.",
     max_reached: "They've already had the maximum number of reminders.",
-    not_invited: "Their invitation hasn't been marked as sent yet."
+    not_invited: "Their invitation hasn't been marked as sent yet.",
+    has_replied: "They have replied, so this household can't be deleted here (their answers would be lost).",
+    own_side_only: "You can only delete households on your own side.",
+    not_found: "That household has already been deleted."
   };
 
   function onOpen(btn) {
@@ -226,7 +241,7 @@
     S.busy[code] = true; render();
     call(Object.assign({ code: code }, body), 10000).then(function (r) {
       S.busy[code] = false;
-      if (!r || !r.ok) { S.errors[code] = REFUSED[r && r.error] || "That didn't save. Try again."; render(); return; }
+      if (!r || !r.ok) { S.errors[code] = REFUSED[r && r.error] || "That didn't save. Try again."; S.confirmDel = null; render(); if (r && r.error === "not_found") load(true); return; }
       after(r); load(true);
     }).catch(function () { S.busy[code] = false; S.errors[code] = "No connection. Try again."; render(); });
   }
@@ -246,6 +261,12 @@
     if (act === "mark") simple(code, { op: "markSent", channel: "other" }, function () { toast("Marked as sent"); });
     if (act === "nudged") simple(code, { op: "markNudged", channel: "other" }, function () { toast("Reminder marked as sent"); });
     if (act === "unmark") simple(code, { op: "unmarkSent" }, function () { toast("Moved back to To send"); });
+    if (act === "del") { S.confirmDel = code; delete S.errors[code]; render(); return; }
+    if (act === "delno") { S.confirmDel = null; render(); return; }
+    if (act === "delyes") {
+      simple(code, { op: "deleteHousehold" }, function (r) { S.confirmDel = null; toast("Deleted " + (r.household || "household")); });
+      return;
+    }
     if (act === "pause") simple(code, { op: "pause", paused: b.getAttribute("data-paused") === "1" }, function (r) { toast(r.paused ? "Reminders stopped for this household" : "Reminders allowed again"); });
   });
   /* ------------------------------------------------------------ adding a household (main sending key only) */
